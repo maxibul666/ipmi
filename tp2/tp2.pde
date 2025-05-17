@@ -27,7 +27,7 @@ void draw() {
 
   //pantalla 1
   background(255);
-  println(frameRate);
+ 
 
   image(logo, -30, -100, miVariable, miVariable);
 
