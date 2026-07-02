@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obra de arte interactiva — acuarela por opacidad</title>
+
+  <!-- ================== LIBRERÍAS (desde CDN, necesitan internet) ================== -->
+  <!-- p5.js CORE (versión 1.x: incluye p5.dom en el core, necesario para createSlider) -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.13/lib/p5.min.js"></script>
+  <!-- p5.SOUND (micrófono, FFT, amplitud) -->
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.13/lib/addons/p5.sound.min.js"></script>
+
+  <!-- ====================== TUS CLASES Y TU SKETCH ====================== -->
+  <!-- El orden importa: primero las clases, después el sketch que las usa. -->
+  <script src="Medialuna.js"></script>
+  <script src="RayaDiagonal.js"></script>
+  <script src="obra_de_arte_interactiva.js"></script>
+
+  <style>
+    /* El layout interno (lienzo + panel, uno al lado del otro) lo arma el sketch
+       por JavaScript dentro de un div #contenedor. Acá sólo centramos ese
+       contenedor en la página; NO centramos el canvas por CSS para no romper
+       el flex interno. */
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 40px 24px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: #ece6d6;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <!-- El sketch inyecta acá el #contenedor con el lienzo y el panel de controles. -->
+</body>
+</html>
