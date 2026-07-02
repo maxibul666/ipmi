@@ -2,7 +2,6 @@
 //  OBRA INTERACTIVA — "Blue 4" (Georgia O'Keeffe) con la voz
 // ============================================================================
 
-// ---------- Lienzo achicado para apretar la composición ----------
 const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 750;
 
@@ -31,9 +30,6 @@ let nivelAnterior = 0;
 let cooldownAplauso = 0;
 let siseoContador = 0;
 
-let lineaActiva = -1;
-let graveSonabaAntes = false;
-
 let energiaGraves = 0, energiaMedios = 0, energiaSiseo = 0, volumen = 0;
 
 let manchaImg, manchaImg2;
@@ -43,7 +39,6 @@ let fondoImg;
 let lienzo, contenedor, panel, lecturasDOM;
 let ctrlVol, ctrlGraves, ctrlMedios, ctrlSiseo;
 let umbralVolumen, umbralGraves, umbralMedios, umbralSiseo; 
-
 
 function preload() {
   manchaImg  = loadImage('mancha-mejorada.png');
@@ -129,14 +124,11 @@ function draw() {
       let c = map(energiaMedios - umbralMedios, 0, 255 - umbralMedios, 0.5, VEL_PINTADO, true);
       pintarEnOrden(manchas, c);
     } else if (hayGrave) {
-      if (!graveSonabaAntes && lineaActiva < lineas.length - 1) lineaActiva++;
-      if (lineaActiva < 0) lineaActiva = 0;
       let fuerza01 = map(energiaGraves, umbralGraves, 255, 0.2, 1, true); 
-      lineas[lineaActiva].crecer(VEL_ALFA_LINEA, VEL_LARGO_LINEA, fuerza01);
+      // Las líneas ahora se llenan en orden igual que las manchas
+      crecerEnOrden(lineas, VEL_ALFA_LINEA, VEL_LARGO_LINEA, fuerza01);
     }
   }
-
-  graveSonabaAntes = hayGrave && !hayVoz;
 
   blendMode(MULTIPLY);
   for (const f of formas) f.dibujar(); 
@@ -146,6 +138,7 @@ function draw() {
   actualizarPanel(borrando);
 }
 
+// Pinta las manchas en orden
 function pintarEnOrden(grupo, cantidad) {
   for (const f of grupo) {
     if (f.opacidad < f.opacidadMaxPropia) {
@@ -155,6 +148,18 @@ function pintarEnOrden(grupo, cantidad) {
   }
 }
 
+// Hace crecer las líneas en orden hasta que se llenan
+function crecerEnOrden(grupo, cAlfa, cLargo, fuerza01) {
+  for (const f of grupo) {
+    // Si la línea todavía no llegó a su máxima opacidad o largo, la hacemos crecer a esa
+    if (f.opacidad < f.opacidadMaxPropia || f.largo < f.largoMax) {
+      f.crecer(cAlfa, cLargo, fuerza01);
+      return;
+    }
+  }
+}
+
+// Borra desde la última forma dibujada hacia atrás
 function borrarLIFO(cantidad) {
   for (let i = formas.length - 1; i >= 0; i--) {
     if (formas[i].opacidad > 0) {
@@ -167,16 +172,22 @@ function borrarLIFO(cantidad) {
 function crearComposicion() {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
-  // MANCHAS
+  // MANCHAS: Posiciones iguales, súper grandes y rozándose
   let m1 = new Medialuna(W * 0.45, H * 0.42, W * 0.65, manchaImg,   0.05); 
   let m2 = new Medialuna(W * 0.52, H * 0.28, W * 0.80, manchaImg2, -0.04); 
   manchas = [m1, m2];
 
-  // LÍNEAS: L1 inflada a 120 de grosor.
+  // LÍNEAS: Todas corridas a la derecha. 
+  // L1 ahora es larguísima, muy gorda, un poco más oscura y se monta apenas sobre m1.
   lineas = [
-    new RayaDiagonal(W * 0.60, H * 0.57, 57, 120, H * 0.28, lineaImg1, 200), // L1: ¡Bien gorda! (120)
-    new RayaDiagonal(W * 0.60, H * 0.65, 57, 65,  H * 0.18, lineaImg2, 255), // L2: Normal
-    new RayaDiagonal(W * 0.64, H * 0.73, 57, 95,  H * 0.28, lineaImg3, 130)  // L3: Gruesa, pero menos que L1
+    // L1: Muerde a m1. Grosor súper ancho (160), Opacidad alta.
+    new RayaDiagonal(W * 0.61, H * 0.51, 57, 160, H * 0.34, lineaImg1, 230), 
+    
+    // L2: Abajo a la izquierda de L1 (donde estaba el hueco)
+    new RayaDiagonal(W * 0.61, H * 0.59, 57, 65,  H * 0.18, lineaImg2, 255), 
+    
+    // L3: Más a la derecha, en escalón, ancha pero clara
+    new RayaDiagonal(W * 0.68, H * 0.61, 57, 95,  H * 0.28, lineaImg3, 130)  
   ];
 
   formas = [...manchas, ...lineas];
@@ -269,8 +280,6 @@ function mostrarInstrucciones() {
   let x = CANVAS_WIDTH * 0.10;
   let y = CANVAS_HEIGHT * 0.40;
   let paso = 46;
-  
-  // INSTRUCCIONES ACTUALIZADAS
   text('Decí "iiiiii" de forma sostenida para dibujar las líneas.', x, y);
   text('Voz media / abierta ("aaah") para pintar las manchas.', x, y + paso);
   text("Un aplauso para invertir las opacidades.", x, y + paso * 2);
@@ -282,6 +291,7 @@ function mostrarInstrucciones() {
   text('Hacé click para comenzar', CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.80);
   pop();
 }
+
 function mostrarCargando() {
   push();
   textAlign(CENTER, CENTER);
